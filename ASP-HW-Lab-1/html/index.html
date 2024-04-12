@@ -1,0 +1,129 @@
+﻿<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Management System</title>
+</head>
+<body>
+    <h1>Car Management System</h1>
+
+    <h2>Add Car</h2>
+    <form id="addCarForm">
+        <label for="model">Model:</label>
+        <input type="text" id="model" name="model"><br><br>
+        <label for="maxSpeed">Max Speed:</label>
+        <input type="number" id="maxSpeed" name="maxSpeed"><br><br>
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
+        <button type="submit">Add Car</button>
+    </form>
+
+    <h2>Edit Car</h2>
+    <form id="editCarForm">
+        <label for="editId">Car ID:</label>
+        <input type="number" id="editId" name="editId"><br><br>
+        <label for="editModel">Model:</label>
+        <input type="text" id="editModel" name="editModel"><br><br>
+        <label for="editMaxSpeed">Max Speed:</label>
+        <input type="number" id="editMaxSpeed" name="editMaxSpeed"><br><br>
+        <label for="editDescription">Description:</label><br>
+        <textarea id="editDescription" name="editDescription" rows="4" cols="50"></textarea><br><br>
+        <button type="submit">Edit Car</button>
+    </form>
+
+    <h2>Delete Car</h2>
+    <form id="deleteCarForm">
+        <label for="deleteId">Car ID:</label>
+        <input type="number" id="deleteId" name="deleteId"><br><br>
+        <button type="submit">Delete Car</button>
+    </form>
+
+    <h2>List of Cars</h2>
+    <ul id="carList"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCars();
+
+            document.getElementById('addCarForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                addCar();
+            });
+
+            document.getElementById('editCarForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                editCar();
+            });
+
+            document.getElementById('deleteCarForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                deleteCar();
+            });
+        });
+
+        function loadCars() {
+            fetch('/api/cars')
+                .then(response => response.json())
+                .then(data => {
+                    const carList = document.getElementById('carList');
+                    carList.innerHTML = '';
+                    data.forEach(car => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `ID: ${car.id}, Model: ${car.model}, Max Speed: ${car.maxSpeed}, Description: ${car.description}`;
+                        carList.appendChild(listItem);
+                    });
+                });
+        }
+
+        function addCar() {
+            const formData = new FormData(document.getElementById('addCarForm'));
+            fetch('/api/cars', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: formData.get('model'),
+                    maxSpeed: parseFloat(formData.get('maxSpeed')),
+                    description: formData.get('description')
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    loadCars();
+                });
+        }
+
+        function editCar() {
+            const formData = new FormData(document.getElementById('editCarForm'));
+            const carId = formData.get('editId');
+            fetch(`/api/cars/${carId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: formData.get('editModel'),
+                    maxSpeed: parseFloat(formData.get('editMaxSpeed')),
+                    description: formData.get('editDescription')
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    loadCars();
+                });
+        }
+
+        function deleteCar() {
+            const formData = new FormData(document.getElementById('deleteCarForm'));
+            const carId = formData.get('deleteId');
+            fetch(`/api/cars/${carId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    loadCars();
+                });
+        }
+    </script>
+</body>
+</html>
